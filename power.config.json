@@ -1,0 +1,12 @@
+{
+  "appId": "",
+  "appDisplayName": "CodeAppsTesting",
+  "description": null,
+  "environmentId": "cc5dcb77-ea39-e71d-ba4b-e8bee266e81a",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "logoPath": "Default",
+  "localAppUrl": "http://localhost:3000/",
+  "connectionReferences": {},
+  "databaseReferences": {}
+}
