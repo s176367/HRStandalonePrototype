@@ -183,7 +183,6 @@ function App() {
     { id: 'om-pant', label: t('navRecruiting') },
     { id: 'pantstationer', label: t('navCandidates') },
     { id: 'virksomheder', label: t('navProcesses') },
-    { id: 'skoler', label: t('navSchools') },
   ]
   const [activeId, setActiveId] = useState(navItems[0].id)
   const activeItem = navItems.find((item) => item.id === activeId) ?? navItems[0]
@@ -435,6 +434,16 @@ function App() {
     }
   }
 
+  const handleGoToCandidate = async (
+    candidate: Mserp_hcmcandidatetohireentities,
+  ) => {
+    setActiveId('pantstationer')
+    if (!hasLoadedCandidates) {
+      await loadCandidates()
+    }
+    setSelectedCandidateId(candidate.mserp_hcmcandidatetohireentityid)
+  }
+
   const sortedCandidates = useMemo(() => {
     const list = [...candidates]
     list.sort((a, b) => {
@@ -536,11 +545,6 @@ function App() {
           </nav>
 
           <div className="topbar-actions" aria-label="Quick actions">
-            <button className="icon-button" type="button" title={t('download')}>
-              <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-                <path d="M12 4v9m0 0 4-4m-4 4-4-4M5 19h14" />
-              </svg>
-            </button>
             <div className="language-switcher">
               <button
                 className="icon-button"
@@ -925,7 +929,7 @@ function App() {
                         <button
                           className="task-row-action"
                           type="button"
-                          onClick={handleGoToCandidates}
+                          onClick={() => handleGoToCandidate(candidate)}
                           aria-label={t('taskCandidatesCta')}
                         >
                           <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
