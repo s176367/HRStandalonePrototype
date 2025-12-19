@@ -1,12 +1,37 @@
 {
-  "appId": "",
+  "appId": "74001a89-de0e-4335-8872-a5625c4a03a6",
   "appDisplayName": "CodeAppsTesting",
   "description": null,
-  "environmentId": "cc5dcb77-ea39-e71d-ba4b-e8bee266e81a",
+  "environmentId": "3516ed31-3e25-4e73-909a-5b8d3241750c",
   "buildPath": "./dist",
   "buildEntryPoint": "index.html",
   "logoPath": "Default",
   "localAppUrl": "http://localhost:3000/",
-  "connectionReferences": {},
-  "databaseReferences": {}
+  "region": "prod",
+  "connectionReferences": {
+    "6415dc1e-6d1f-4986-ac67-5e22999bed12": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+      "displayName": "Office 365 Users",
+      "dataSources": [
+        "office365users"
+      ],
+      "dataSets": {}
+    }
+  },
+  "databaseReferences": {
+    "default.cds": {
+      "state": "Configured",
+      "instanceUrl": "https://operations-lsatest02.crm4.dynamics.com/",
+      "webApiVersion": "v9.0",
+      "dataSources": {
+        "candidatetohire_mserp_": {
+          "entitySetName": "mserp_hcmcandidatetohireentities",
+          "logicalName": "mserp_hcmcandidatetohireentity",
+          "isHidden": false
+        }
+      },
+      "version": "v9.0",
+      "environmentVariableName": ""
+    }
+  }
 }

@@ -1,0 +1,347 @@
+{
+  "name": "mserp_hcmcandidatetohireentity",
+  "title": "Candidate to hire (mserp)",
+  "schema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "x-ms-dataverse-entity": true,
+      "x-ms-dataverse-entityset": "mserp_hcmcandidatetohireentities",
+      "x-ms-dataverse-primary-id": "mserp_hcmcandidatetohireentityid",
+      "x-ms-dataverse-primary-name": "mserp_candidateid",
+      "properties": {
+        "mserp_applicantintegrationresult": {
+          "type": "string",
+          "title": "Applicant integration result",
+          "x-ms-dataverse-attribute": "mserp_applicantintegrationresult",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "mserp_applicantintegrationresult",
+          "enum": [
+            "Not Processed",
+            "Hired",
+            "Not hired",
+            "Dismissed"
+          ],
+          "x-ms-enum-values": [
+            200000000,
+            200000001,
+            200000002,
+            200000003
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "4607e310-3c4f-f011-877b-000d3a44bc39",
+          "x-ms-isGlobal": true,
+          "x-ms-optionsetdisplayname": "Applicant integration result (mserp)",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "mserp_applicantintegrationresultname": {
+          "type": "string",
+          "title": "mserp_applicantintegrationresultname",
+          "x-ms-dataverse-attribute": "mserp_applicantintegrationresultname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "mserp_applicantintegrationresultName",
+          "x-ms-read-only": true
+        },
+        "mserp_availabilitydate": {
+          "type": "string",
+          "title": "Availability date",
+          "x-ms-dataverse-attribute": "mserp_availabilitydate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "mserp_availabilitydate"
+        },
+        "mserp_birthdate": {
+          "type": "string",
+          "title": "Birth date",
+          "x-ms-dataverse-attribute": "mserp_birthdate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "mserp_birthdate"
+        },
+        "mserp_candidateid": {
+          "type": "string",
+          "title": "Candidate",
+          "x-ms-dataverse-attribute": "mserp_candidateid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_candidateid",
+          "x-ms-dataverse-primary-name": true,
+          "maxLength": 30
+        },
+        "mserp_citizenshipcountrycode": {
+          "type": "string",
+          "title": "Citizenship country/region",
+          "x-ms-dataverse-attribute": "mserp_citizenshipcountrycode",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_citizenshipcountrycode",
+          "maxLength": 50
+        },
+        "mserp_comments": {
+          "type": "string",
+          "title": "Comment",
+          "x-ms-dataverse-attribute": "mserp_comments",
+          "x-ms-dataverse-type": "MemoType",
+          "x-ms-schema-name": "mserp_comments",
+          "maxLength": 1048576
+        },
+        "mserp_dataareaid": {
+          "type": "string",
+          "title": "Company Code",
+          "x-ms-dataverse-attribute": "mserp_dataareaid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_dataareaid",
+          "maxLength": 4
+        },
+        "mserp_dataareaid_id": {
+          "type": "string",
+          "title": "Company",
+          "x-ms-dataverse-attribute": "mserp_dataareaid_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "mserp_dataAreaId_id"
+        },
+        "mserp_dataareaid_idname": {
+          "type": "string",
+          "title": "mserp_dataareaid_idname",
+          "x-ms-dataverse-attribute": "mserp_dataareaid_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_dataAreaId_idName",
+          "x-ms-read-only": true,
+          "maxLength": 20
+        },
+        "mserp_donothirereasoncodeid": {
+          "type": "string",
+          "title": "Reason code",
+          "x-ms-dataverse-attribute": "mserp_donothirereasoncodeid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_donothirereasoncodeid",
+          "maxLength": 15
+        },
+        "mserp_ethnicoriginid": {
+          "type": "string",
+          "title": "Ethnic origin",
+          "x-ms-dataverse-attribute": "mserp_ethnicoriginid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_ethnicoriginid",
+          "maxLength": 15
+        },
+        "mserp_firstname": {
+          "type": "string",
+          "title": "First name",
+          "x-ms-dataverse-attribute": "mserp_firstname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_firstname",
+          "maxLength": 50
+        },
+        "mserp_fk_position_id": {
+          "type": "string",
+          "title": "Positions V2",
+          "x-ms-dataverse-attribute": "mserp_fk_position_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "mserp_FK_Position_id"
+        },
+        "mserp_fk_position_idname": {
+          "type": "string",
+          "title": "mserp_fk_position_idname",
+          "x-ms-dataverse-attribute": "mserp_fk_position_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_FK_Position_idName",
+          "x-ms-read-only": true,
+          "maxLength": 25
+        },
+        "mserp_gender": {
+          "type": "string",
+          "title": "Gender",
+          "x-ms-dataverse-attribute": "mserp_gender",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "mserp_gender",
+          "enum": [
+            "None",
+            "Male",
+            "Female",
+            "Non-Specific"
+          ],
+          "x-ms-enum-values": [
+            200000000,
+            200000001,
+            200000002,
+            200000003
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "f91c1906-975a-ed11-9562-000d3aabc75d",
+          "x-ms-isGlobal": true,
+          "x-ms-optionsetdisplayname": "Gender (mserp)",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "mserp_gendername": {
+          "type": "string",
+          "title": "mserp_gendername",
+          "x-ms-dataverse-attribute": "mserp_gendername",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "mserp_genderName",
+          "x-ms-read-only": true
+        },
+        "mserp_hcmcandidatetohireentityid": {
+          "type": "string",
+          "title": "Candidate to hire (mserp)",
+          "x-ms-dataverse-attribute": "mserp_hcmcandidatetohireentityid",
+          "x-ms-dataverse-type": "UniqueidentifierType",
+          "x-ms-schema-name": "mserp_hcmcandidatetohireentityId",
+          "x-ms-dataverse-primary-id": true,
+          "required": true,
+          "x-ms-keyType": "primary"
+        },
+        "mserp_isdisabledveteran": {
+          "type": "string",
+          "title": "Disabled veteran",
+          "x-ms-dataverse-attribute": "mserp_isdisabledveteran",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "mserp_isdisabledveteran",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            200000000,
+            200000001
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "06752af5-b54e-ec11-8c62-6045bd8f5914",
+          "x-ms-isGlobal": true,
+          "x-ms-optionsetdisplayname": "NoYes (mserp)",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "mserp_isdisabledveteranname": {
+          "type": "string",
+          "title": "mserp_isdisabledveteranname",
+          "x-ms-dataverse-attribute": "mserp_isdisabledveteranname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "mserp_isdisabledveteranName",
+          "x-ms-read-only": true
+        },
+        "mserp_iswillingtorelocate": {
+          "type": "string",
+          "title": "Is willing to relocate",
+          "x-ms-dataverse-attribute": "mserp_iswillingtorelocate",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "mserp_iswillingtorelocate",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            200000000,
+            200000001
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "06752af5-b54e-ec11-8c62-6045bd8f5914",
+          "x-ms-isGlobal": true,
+          "x-ms-optionsetdisplayname": "NoYes (mserp)",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "mserp_iswillingtorelocatename": {
+          "type": "string",
+          "title": "mserp_iswillingtorelocatename",
+          "x-ms-dataverse-attribute": "mserp_iswillingtorelocatename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "mserp_iswillingtorelocateName",
+          "x-ms-read-only": true
+        },
+        "mserp_lastname": {
+          "type": "string",
+          "title": "Last name",
+          "x-ms-dataverse-attribute": "mserp_lastname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_lastname",
+          "maxLength": 50
+        },
+        "mserp_lastnameprefix": {
+          "type": "string",
+          "title": "Last name prefix",
+          "x-ms-dataverse-attribute": "mserp_lastnameprefix",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_lastnameprefix",
+          "maxLength": 25
+        },
+        "mserp_middlename": {
+          "type": "string",
+          "title": "Middle name",
+          "x-ms-dataverse-attribute": "mserp_middlename",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_middlename",
+          "maxLength": 50
+        },
+        "mserp_militaryserviceenddate": {
+          "type": "string",
+          "title": "Military service end date",
+          "x-ms-dataverse-attribute": "mserp_militaryserviceenddate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "mserp_militaryserviceenddate"
+        },
+        "mserp_militaryservicestartdate": {
+          "type": "string",
+          "title": "Military service start date",
+          "x-ms-dataverse-attribute": "mserp_militaryservicestartdate",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "mserp_militaryservicestartdate"
+        },
+        "mserp_partynumber": {
+          "type": "string",
+          "title": "Party ID",
+          "x-ms-dataverse-attribute": "mserp_partynumber",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_partynumber",
+          "maxLength": 40
+        },
+        "mserp_partytype": {
+          "type": "string",
+          "title": "Record type",
+          "x-ms-dataverse-attribute": "mserp_partytype",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_partytype",
+          "x-ms-read-only": true,
+          "maxLength": 13
+        },
+        "mserp_positionid": {
+          "type": "string",
+          "title": "Position",
+          "x-ms-dataverse-attribute": "mserp_positionid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_positionid",
+          "maxLength": 25
+        },
+        "mserp_recruitingrequestid": {
+          "type": "string",
+          "title": "Recruiting request",
+          "x-ms-dataverse-attribute": "mserp_recruitingrequestid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_recruitingrequestid",
+          "maxLength": 30
+        },
+        "mserp_veteranstatusid": {
+          "type": "string",
+          "title": "Veteran status",
+          "x-ms-dataverse-attribute": "mserp_veteranstatusid",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "mserp_veteranstatusid",
+          "maxLength": 15
+        }
+      },
+      "required": [
+        "mserp_hcmcandidatetohireentityid"
+      ]
+    }
+  }
+}
