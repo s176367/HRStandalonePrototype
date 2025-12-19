@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pac code run && vite",
+    "dev": "powershell -Command \"Start-Process pac -ArgumentList 'code run' -NoNewWindow; vite\"",
+    "dev:vite": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
