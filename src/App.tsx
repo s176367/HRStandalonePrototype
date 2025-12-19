@@ -1,18 +1,167 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { User } from './generated/models/Office365UsersModel'
 import { Office365UsersService } from './generated/services/Office365UsersService'
 import type { Mserp_hcmcandidatetohireentities } from './generated/models/Mserp_hcmcandidatetohireentitiesModel'
+import { Mserp_hcmcandidatetohireentitiesmserp_applicantintegrationresult } from './generated/models/Mserp_hcmcandidatetohireentitiesModel'
 import { Mserp_hcmcandidatetohireentitiesService } from './generated/services/Mserp_hcmcandidatetohireentitiesService'
 import { ensurePowerInit } from './PowerProvider'
 import './App.css'
 
+type Locale = 'da' | 'en'
+type SortField = 'name' | 'status' | 'hireDate'
+type SortDirection = 'asc' | 'desc'
+
+const translations = {
+  da: {
+    navOverview: 'Overblik',
+    navRecruiting: 'Rekrutering',
+    navCandidates: 'Kandidater',
+    navProcesses: 'Processer',
+    navSchools: 'Skoler & uddannelser',
+    loadingUser: 'Indlaeser brugerdata...',
+    welcomeUser: 'Velkommen, {name}.',
+    userLoadError: 'Kunne ikke indlaese brugerdata.',
+    retry: 'Forsog igen',
+    continue: 'Fortsaet til appen',
+    genericUser: 'Bruger',
+    mainContentTitle: 'Hovedindhold for {label}',
+    mainContentBody:
+      'Dette omrade udfyldes senere. Topbaren forbliver synlig, mens indholdet skifter med navigationen ovenfor.',
+    candidatesEyebrow: 'Kandidater',
+    candidatesTitle: 'Kandidatoversigt',
+    refresh: 'Opdater',
+    loadingCandidates: 'Henter kandidater...',
+    candidatesError: 'Kunne ikke hente kandidater.',
+    noCandidates: 'Ingen kandidater fundet.',
+    detailsEyebrow: 'Detaljer',
+    selectCandidateTitle: 'Vaelg en kandidat',
+    selectCandidateBody:
+      'Klik paa en kandidat til venstre for at aabne detaljepanelet.',
+    unknownCandidate: 'Ukendt kandidat',
+    fieldFirstName: 'Fornavn',
+    fieldLastName: 'Efternavn',
+    fieldMiddleName: 'Mellemnavn',
+    fieldPrefix: 'Prefix',
+    fieldCandidateId: 'Kandidat-id',
+    fieldBirthdate: 'Fodselsdato',
+    fieldGender: 'Koen',
+    fieldAvailableFrom: 'Ledig fra',
+    fieldPosition: 'Stilling',
+    fieldRecruitingId: 'Rekrutterings-id',
+    fieldDataArea: 'Data area',
+    fieldPartyNumber: 'Partynummer',
+    fieldPartyType: 'Partytype',
+    fieldCitizenship: 'Statsborgerskab',
+    fieldRelocate: 'Flytning',
+    fieldVeteran: 'Veteran',
+    fieldStatus: 'Status',
+    fieldComments: 'Kommentarer',
+    hire: 'Hire',
+    hireConfirmTitle: 'Er du sikker?',
+    hireConfirmBody: 'Denne handling kan ikke fortrydes.',
+    hireConfirmAction: 'Bekraeft',
+    hireCancel: 'Annuller',
+    download: 'Download',
+    language: 'Sprog',
+    menu: 'Menu',
+    languageDanish: 'Dansk',
+    languageEnglish: 'English',
+    sort: 'Sorter',
+    sortNameAsc: 'Navn (A-Z)',
+    sortNameDesc: 'Navn (Z-A)',
+    sortStatusAsc: 'Status (A-Z)',
+    sortStatusDesc: 'Status (Z-A)',
+    sortHireDateAsc: 'Ansaettelsesdato (stigende)',
+    sortHireDateDesc: 'Ansaettelsesdato (faldende)',
+    availableLabel: 'Ledig',
+  },
+  en: {
+    navOverview: 'Overview',
+    navRecruiting: 'Recruiting',
+    navCandidates: 'Candidates',
+    navProcesses: 'Processes',
+    navSchools: 'Schools & education',
+    loadingUser: 'Loading user data...',
+    welcomeUser: 'Welcome, {name}.',
+    userLoadError: 'Unable to load user data.',
+    retry: 'Try again',
+    continue: 'Continue to the app',
+    genericUser: 'User',
+    mainContentTitle: 'Main content for {label}',
+    mainContentBody:
+      'This area will be filled later. The top bar remains visible while the content changes with the navigation above.',
+    candidatesEyebrow: 'Candidates',
+    candidatesTitle: 'Candidate overview',
+    refresh: 'Refresh',
+    loadingCandidates: 'Loading candidates...',
+    candidatesError: 'Unable to load candidates.',
+    noCandidates: 'No candidates found.',
+    detailsEyebrow: 'Details',
+    selectCandidateTitle: 'Select a candidate',
+    selectCandidateBody:
+      'Click a candidate on the left to open the details panel.',
+    unknownCandidate: 'Unknown candidate',
+    fieldFirstName: 'First name',
+    fieldLastName: 'Last name',
+    fieldMiddleName: 'Middle name',
+    fieldPrefix: 'Prefix',
+    fieldCandidateId: 'Candidate id',
+    fieldBirthdate: 'Birthdate',
+    fieldGender: 'Gender',
+    fieldAvailableFrom: 'Available from',
+    fieldPosition: 'Position',
+    fieldRecruitingId: 'Recruiting id',
+    fieldDataArea: 'Data area',
+    fieldPartyNumber: 'Party number',
+    fieldPartyType: 'Party type',
+    fieldCitizenship: 'Citizenship',
+    fieldRelocate: 'Relocation',
+    fieldVeteran: 'Veteran',
+    fieldStatus: 'Status',
+    fieldComments: 'Comments',
+    hire: 'Hire',
+    hireConfirmTitle: 'Are you sure?',
+    hireConfirmBody: 'This action cannot be reverted.',
+    hireConfirmAction: 'Confirm',
+    hireCancel: 'Cancel',
+    download: 'Download',
+    language: 'Language',
+    menu: 'Menu',
+    languageDanish: 'Danish',
+    languageEnglish: 'English',
+    sort: 'Sort',
+    sortNameAsc: 'Name (A-Z)',
+    sortNameDesc: 'Name (Z-A)',
+    sortStatusAsc: 'Status (A-Z)',
+    sortStatusDesc: 'Status (Z-A)',
+    sortHireDateAsc: 'Hiring date (asc)',
+    sortHireDateDesc: 'Hiring date (desc)',
+    availableLabel: 'Available',
+  },
+} as const
+
 function App() {
+  const [locale, setLocale] = useState<Locale>('da')
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false)
+  const t = (
+    key: keyof typeof translations.da,
+    vars?: Record<string, string>,
+  ) => {
+    let value: string = translations[locale][key]
+    if (vars) {
+      Object.entries(vars).forEach(([token, replacement]) => {
+        value = value.replace(`{${token}}`, replacement)
+      })
+    }
+    return value
+  }
+
   const navItems = [
-    { id: 'klima', label: 'Overblik' },
-    { id: 'om-pant', label: 'Rekrutering' },
-    { id: 'pantstationer', label: 'Kandidater' },
-    { id: 'virksomheder', label: 'Processer' },
-    { id: 'skoler', label: 'Skoler & uddannelser' },
+    { id: 'klima', label: t('navOverview') },
+    { id: 'om-pant', label: t('navRecruiting') },
+    { id: 'pantstationer', label: t('navCandidates') },
+    { id: 'virksomheder', label: t('navProcesses') },
+    { id: 'skoler', label: t('navSchools') },
   ]
   const [activeId, setActiveId] = useState(navItems[0].id)
   const activeItem = navItems.find((item) => item.id === activeId) ?? navItems[0]
@@ -27,6 +176,11 @@ function App() {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(
     null,
   )
+  const [isHiringCandidate, setIsHiringCandidate] = useState(false)
+  const [isConfirmingHire, setIsConfirmingHire] = useState(false)
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false)
 
   const loadUser = async () => {
     setIsLoadingUser(true)
@@ -111,7 +265,7 @@ function App() {
   }, [activeId, hasLoadedCandidates])
 
   const canContinue = Boolean(user) && !isLoadingUser && !userError
-  const displayName = user?.DisplayName ?? user?.Mail ?? 'Bruger'
+  const displayName = user?.DisplayName ?? user?.Mail ?? t('genericUser')
   const selectedCandidate =
     candidates.find(
       (candidate) =>
@@ -124,7 +278,7 @@ function App() {
     const firstName = candidate.mserp_firstname?.trim() ?? ''
     const lastName = candidate.mserp_lastname?.trim() ?? ''
     const fullName = [firstName, lastName].filter(Boolean).join(' ')
-    return fullName || 'Ukendt kandidat'
+    return fullName || t('unknownCandidate')
   }
 
   const getFormattedValue = (
@@ -145,6 +299,91 @@ function App() {
     return String(rawValue)
   }
 
+  const handleHireCandidate = async () => {
+    if (!selectedCandidate) {
+      return
+    }
+    setIsHiringCandidate(true)
+    setCandidatesError(null)
+    try {
+      await ensurePowerInit()
+      const result = await Mserp_hcmcandidatetohireentitiesService.update(
+        selectedCandidate.mserp_hcmcandidatetohireentityid,
+        {
+          mserp_applicantintegrationresult:
+            200000001 as Mserp_hcmcandidatetohireentitiesmserp_applicantintegrationresult,
+        },
+      )
+      if (!result.success) {
+        setCandidatesError(
+          result.error?.message ?? 'Unable to update candidate status.',
+        )
+      } else {
+        await loadCandidates()
+      }
+    } catch (error) {
+      setCandidatesError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to update candidate status.',
+      )
+    } finally {
+      setIsHiringCandidate(false)
+    }
+  }
+
+  const formatDate = (value?: string): string => {
+    if (!value) {
+      return '-'
+    }
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) {
+      return '-'
+    }
+    const day = String(parsed.getUTCDate()).padStart(2, '0')
+    const month = String(parsed.getUTCMonth() + 1).padStart(2, '0')
+    const year = parsed.getUTCFullYear()
+    return `${day}-${month}-${year}`
+  }
+
+  const getCandidateStatus = (candidate: Mserp_hcmcandidatetohireentities) =>
+    getFormattedValue(candidate, 'mserp_applicantintegrationresult')
+
+  const sortedCandidates = useMemo(() => {
+    const list = [...candidates]
+    list.sort((a, b) => {
+      const direction = sortDirection === 'asc' ? 1 : -1
+      if (sortField === 'name') {
+        const aName = `${a.mserp_firstname ?? ''} ${a.mserp_lastname ?? ''}`
+          .trim()
+          .toLowerCase()
+        const bName = `${b.mserp_firstname ?? ''} ${b.mserp_lastname ?? ''}`
+          .trim()
+          .toLowerCase()
+        return aName.localeCompare(bName) * direction
+      }
+      if (sortField === 'status') {
+        const aStatus = getFormattedValue(
+          a,
+          'mserp_applicantintegrationresult',
+        ).toLowerCase()
+        const bStatus = getFormattedValue(
+          b,
+          'mserp_applicantintegrationresult',
+        ).toLowerCase()
+        return aStatus.localeCompare(bStatus) * direction
+      }
+      const aDate = a.mserp_availabilitydate
+        ? Date.parse(a.mserp_availabilitydate)
+        : 0
+      const bDate = b.mserp_availabilitydate
+        ? Date.parse(b.mserp_availabilitydate)
+        : 0
+      return (aDate - bDate) * direction
+    })
+    return list
+  }, [candidates, sortDirection, sortField])
+
   if (!hasContinued) {
     return (
       <div className="splash-screen">
@@ -155,13 +394,15 @@ function App() {
             alt="Dansk Retur System"
           />
           <p className="splash-status">
-            {isLoadingUser && 'Indlaeser brugerdata...'}
-            {!isLoadingUser && user && `Velkommen, ${displayName}.`}
-            {!isLoadingUser && userError && 'Kunne ikke indlaese brugerdata.'}
+            {isLoadingUser && t('loadingUser')}
+            {!isLoadingUser &&
+              user &&
+              t('welcomeUser', { name: displayName })}
+            {!isLoadingUser && userError && t('userLoadError')}
           </p>
           {userError && (
             <button className="splash-secondary" type="button" onClick={loadUser}>
-              Forsog igen
+              {t('retry')}
             </button>
           )}
           <button
@@ -170,7 +411,7 @@ function App() {
             onClick={() => setHasContinued(true)}
             disabled={!canContinue}
           >
-            Fortsaet til appen
+            {t('continue')}
           </button>
         </div>
       </div>
@@ -204,18 +445,53 @@ function App() {
           </nav>
 
           <div className="topbar-actions" aria-label="Quick actions">
-            <button className="icon-button" type="button" title="Download">
+            <button className="icon-button" type="button" title={t('download')}>
               <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                 <path d="M12 4v9m0 0 4-4m-4 4-4-4M5 19h14" />
               </svg>
             </button>
-            <button className="icon-button" type="button" title="Language">
-              <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
-              </svg>
-            </button>
-            <button className="icon-button" type="button" title="Menu">
+            <div className="language-switcher">
+              <button
+                className="icon-button"
+                type="button"
+                title={t('language')}
+                aria-haspopup="menu"
+                aria-expanded={isLanguageMenuOpen}
+                onClick={() => setIsLanguageMenuOpen((open) => !open)}
+              >
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
+                </svg>
+              </button>
+              {isLanguageMenuOpen && (
+                <div className="language-menu" role="menu">
+                  <button
+                    className={`language-option${locale === 'da' ? ' is-active' : ''}`}
+                    type="button"
+                    onClick={() => {
+                      setLocale('da')
+                      setIsLanguageMenuOpen(false)
+                    }}
+                  >
+                    <span className="language-flag language-flag-da" aria-hidden="true" />
+                    {t('languageDanish')}
+                  </button>
+                  <button
+                    className={`language-option${locale === 'en' ? ' is-active' : ''}`}
+                    type="button"
+                    onClick={() => {
+                      setLocale('en')
+                      setIsLanguageMenuOpen(false)
+                    }}
+                  >
+                    <span className="language-flag language-flag-en" aria-hidden="true" />
+                    {t('languageEnglish')}
+                  </button>
+                </div>
+              )}
+            </div>
+            <button className="icon-button" type="button" title={t('menu')}>
               <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                 <path d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -230,32 +506,118 @@ function App() {
             <div className="candidates-list">
               <div className="candidates-header">
                 <div>
-                  <p className="eyebrow">Kandidater</p>
-                  <h1>Kandidatoversigt</h1>
+                  <p className="eyebrow">{t('candidatesEyebrow')}</p>
+                  <h1>{t('candidatesTitle')}</h1>
                 </div>
-                <button
-                  className="candidate-refresh"
-                  type="button"
-                  onClick={loadCandidates}
-                  disabled={isLoadingCandidates}
-                >
-                  Opdater
-                </button>
+                <div className="candidate-actions">
+                  <button
+                    className="candidate-refresh"
+                    type="button"
+                    onClick={loadCandidates}
+                    disabled={isLoadingCandidates}
+                  >
+                    {t('refresh')}
+                  </button>
+                  <div className="sort-switcher">
+                    <button
+                      className="sort-button"
+                      type="button"
+                      title={t('sort')}
+                      aria-haspopup="menu"
+                      aria-expanded={isSortMenuOpen}
+                      onClick={() => setIsSortMenuOpen((open) => !open)}
+                    >
+                      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                        <path d="M7 4v13m0 0-3-3m3 3 3-3M17 20V7m0 0-3 3m3-3 3 3" />
+                      </svg>
+                    </button>
+                    {isSortMenuOpen && (
+                      <div className="sort-menu" role="menu">
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('name')
+                            setSortDirection('asc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortNameAsc')}
+                        </button>
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('name')
+                            setSortDirection('desc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortNameDesc')}
+                        </button>
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('status')
+                            setSortDirection('asc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortStatusAsc')}
+                        </button>
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('status')
+                            setSortDirection('desc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortStatusDesc')}
+                        </button>
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('hireDate')
+                            setSortDirection('asc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortHireDateAsc')}
+                        </button>
+                        <button
+                          className="sort-option"
+                          type="button"
+                          onClick={() => {
+                            setSortField('hireDate')
+                            setSortDirection('desc')
+                            setIsSortMenuOpen(false)
+                          }}
+                        >
+                          {t('sortHireDateDesc')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {isLoadingCandidates && (
-                <p className="status-line">Henter kandidater...</p>
+                <p className="status-line">{t('loadingCandidates')}</p>
               )}
 
               {candidatesError && (
                 <div className="status-error">
-                  <p>Kunne ikke hente kandidater.</p>
+                  <p>{t('candidatesError')}</p>
                   <button
                     className="candidate-refresh"
                     type="button"
                     onClick={loadCandidates}
                   >
-                    Proev igen
+                    {t('retry')}
                   </button>
                 </div>
               )}
@@ -263,14 +625,14 @@ function App() {
               {!isLoadingCandidates &&
                 !candidatesError &&
                 candidates.length === 0 && (
-                  <p className="status-line">Ingen kandidater fundet.</p>
+                  <p className="status-line">{t('noCandidates')}</p>
                 )}
 
               {!isLoadingCandidates &&
                 !candidatesError &&
                 candidates.length > 0 && (
                   <ul className="candidate-list">
-                    {candidates.map((candidate) => {
+                    {sortedCandidates.map((candidate) => {
                       const candidateName = getCandidateName(candidate)
                       return (
                         <li key={candidate.mserp_hcmcandidatetohireentityid}>
@@ -288,7 +650,20 @@ function App() {
                               )
                             }
                           >
-                            {candidateName}
+                            <span className="candidate-meta">
+                              <span className="candidate-name">{candidateName}</span>
+                              <span className="candidate-status">
+                                {getCandidateStatus(candidate)}
+                              </span>
+                            </span>
+                            <span className="candidate-date">
+                              <span className="candidate-date-label">
+                                {t('availableLabel')}:
+                              </span>
+                              <span className="candidate-date-value">
+                                {formatDate(candidate.mserp_availabilitydate)}
+                              </span>
+                            </span>
                           </button>
                         </li>
                       )
@@ -301,68 +676,78 @@ function App() {
               {selectedCandidate ? (
                 <div className="candidate-panel-content">
                   <div className="candidate-panel-header">
-                    <p className="eyebrow">Detaljer</p>
-                    <h2>{getCandidateName(selectedCandidate)}</h2>
+                    <div className="candidate-panel-title">
+                      <p className="eyebrow">{t('detailsEyebrow')}</p>
+                      <h2>{getCandidateName(selectedCandidate)}</h2>
+                    </div>
+                    <button
+                      className="candidate-hire"
+                      type="button"
+                      onClick={() => setIsConfirmingHire(true)}
+                      disabled={isHiringCandidate}
+                    >
+                      {t('hire')}
+                    </button>
                   </div>
                   <dl className="candidate-details">
                     <div>
-                      <dt>Fornavn</dt>
+                      <dt>{t('fieldFirstName')}</dt>
                       <dd>{selectedCandidate.mserp_firstname ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Efternavn</dt>
+                      <dt>{t('fieldLastName')}</dt>
                       <dd>{selectedCandidate.mserp_lastname ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Mellemnavn</dt>
+                      <dt>{t('fieldMiddleName')}</dt>
                       <dd>{selectedCandidate.mserp_middlename ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Prefix</dt>
+                      <dt>{t('fieldPrefix')}</dt>
                       <dd>{selectedCandidate.mserp_lastnameprefix ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Kandidat-id</dt>
+                      <dt>{t('fieldCandidateId')}</dt>
                       <dd>{selectedCandidate.mserp_candidateid ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Fodselsdato</dt>
-                      <dd>{selectedCandidate.mserp_birthdate ?? '-'}</dd>
+                      <dt>{t('fieldBirthdate')}</dt>
+                      <dd>{formatDate(selectedCandidate.mserp_birthdate)}</dd>
                     </div>
                     <div>
-                      <dt>Koen</dt>
+                      <dt>{t('fieldGender')}</dt>
                       <dd>{getFormattedValue(selectedCandidate, 'mserp_gender')}</dd>
                     </div>
                     <div>
-                      <dt>Ledig fra</dt>
-                      <dd>{selectedCandidate.mserp_availabilitydate ?? '-'}</dd>
+                      <dt>{t('fieldAvailableFrom')}</dt>
+                      <dd>{formatDate(selectedCandidate.mserp_availabilitydate)}</dd>
                     </div>
                     <div>
-                      <dt>Stilling</dt>
+                      <dt>{t('fieldPosition')}</dt>
                       <dd>{selectedCandidate.mserp_positionid ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Rekrutterings-id</dt>
+                      <dt>{t('fieldRecruitingId')}</dt>
                       <dd>{selectedCandidate.mserp_recruitingrequestid ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Data area</dt>
+                      <dt>{t('fieldDataArea')}</dt>
                       <dd>{selectedCandidate.mserp_dataareaid ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Partynummer</dt>
+                      <dt>{t('fieldPartyNumber')}</dt>
                       <dd>{selectedCandidate.mserp_partynumber ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Partytype</dt>
+                      <dt>{t('fieldPartyType')}</dt>
                       <dd>{selectedCandidate.mserp_partytype ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Statsborgerskab</dt>
+                      <dt>{t('fieldCitizenship')}</dt>
                       <dd>{selectedCandidate.mserp_citizenshipcountrycode ?? '-'}</dd>
                     </div>
                     <div>
-                      <dt>Flytning</dt>
+                      <dt>{t('fieldRelocate')}</dt>
                       <dd>
                         {getFormattedValue(
                           selectedCandidate,
@@ -371,7 +756,7 @@ function App() {
                       </dd>
                     </div>
                     <div>
-                      <dt>Veteran</dt>
+                      <dt>{t('fieldVeteran')}</dt>
                       <dd>
                         {getFormattedValue(
                           selectedCandidate,
@@ -380,7 +765,7 @@ function App() {
                       </dd>
                     </div>
                     <div>
-                      <dt>Status</dt>
+                      <dt>{t('fieldStatus')}</dt>
                       <dd>
                         {getFormattedValue(
                           selectedCandidate,
@@ -389,19 +774,16 @@ function App() {
                       </dd>
                     </div>
                     <div>
-                      <dt>Kommentarer</dt>
+                      <dt>{t('fieldComments')}</dt>
                       <dd>{selectedCandidate.mserp_comments ?? '-'}</dd>
                     </div>
                   </dl>
                 </div>
               ) : (
                 <div className="candidate-empty">
-                  <p className="eyebrow">Detaljer</p>
-                  <h2>Vaelg en kandidat</h2>
-                  <p>
-                    Klik paa en kandidat til venstre for at aabne
-                    detaljepanelet.
-                  </p>
+                  <p className="eyebrow">{t('detailsEyebrow')}</p>
+                  <h2>{t('selectCandidateTitle')}</h2>
+                  <p>{t('selectCandidateBody')}</p>
                 </div>
               )}
             </aside>
@@ -409,14 +791,43 @@ function App() {
         ) : (
           <section className="hero">
             <p className="eyebrow">{activeItem.label}</p>
-            <h1>Hovedindhold for {activeItem.label}</h1>
-            <p>
-              Dette omrade udfyldes senere. Topbaren forbliver synlig, mens
-              indholdet skifter med navigationen ovenfor.
-            </p>
+            <h1>{t('mainContentTitle', { label: activeItem.label })}</h1>
+            <p>{t('mainContentBody')}</p>
           </section>
         )}
       </main>
+      {isConfirmingHire && selectedCandidate && (
+        <div className="modal-backdrop" role="presentation">
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hire-modal-title"
+          >
+            <h3 id="hire-modal-title">{t('hireConfirmTitle')}</h3>
+            <p>{t('hireConfirmBody')}</p>
+            <div className="modal-actions">
+              <button
+                className="modal-primary"
+                type="button"
+                onClick={async () => {
+                  setIsConfirmingHire(false)
+                  await handleHireCandidate()
+                }}
+              >
+                {t('hireConfirmAction')}
+              </button>
+              <button
+                className="modal-secondary"
+                type="button"
+                onClick={() => setIsConfirmingHire(false)}
+              >
+                {t('hireCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
