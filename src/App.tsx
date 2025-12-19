@@ -74,6 +74,14 @@ const translations = {
     sortHireDateAsc: 'Ansaettelsesdato (stigende)',
     sortHireDateDesc: 'Ansaettelsesdato (faldende)',
     availableLabel: 'Ledig',
+    taskBoardTitle: 'Overblik over opgaver',
+    taskCandidatesTitle: 'Kandidater der mangler behandling',
+    taskCandidatesCount: '{count} kandidater',
+    taskCandidatesCta: 'Gaa til kandidater',
+    taskPlaceholderTitle1: 'KPI placeholder',
+    taskPlaceholderBody1: 'Tilpas KPI her',
+    taskPlaceholderTitle2: 'KPI placeholder',
+    taskPlaceholderBody2: 'Tilpas KPI her',
   },
   en: {
     navOverview: 'Overview',
@@ -137,6 +145,14 @@ const translations = {
     sortHireDateAsc: 'Hiring date (asc)',
     sortHireDateDesc: 'Hiring date (desc)',
     availableLabel: 'Available',
+    taskBoardTitle: 'Task overview',
+    taskCandidatesTitle: 'Candidates awaiting processing',
+    taskCandidatesCount: '{count} candidates',
+    taskCandidatesCta: 'Go to candidates',
+    taskPlaceholderTitle1: 'KPI placeholder',
+    taskPlaceholderBody1: 'Configure KPI here',
+    taskPlaceholderTitle2: 'KPI placeholder',
+    taskPlaceholderBody2: 'Configure KPI here',
   },
 } as const
 
@@ -239,19 +255,23 @@ function App() {
         orderBy: ['mserp_lastname asc', 'mserp_firstname asc'],
       })
       if (result.success) {
-        setCandidates(result.data ?? [])
+        const data = result.data ?? []
+        setCandidates(data)
         setHasLoadedCandidates(true)
+        return data
       } else {
         setCandidates([])
         setCandidatesError(
           result.error?.message ?? 'Unable to load candidates.',
         )
+        return []
       }
     } catch (error) {
       setCandidates([])
       setCandidatesError(
         error instanceof Error ? error.message : 'Unable to load candidates.',
       )
+      return []
     } finally {
       setIsLoadingCandidates(false)
     }
@@ -259,6 +279,13 @@ function App() {
 
   useEffect(() => {
     if (activeId !== 'pantstationer' || hasLoadedCandidates) {
+      return
+    }
+    void loadCandidates()
+  }, [activeId, hasLoadedCandidates])
+
+  useEffect(() => {
+    if (activeId !== 'klima' || hasLoadedCandidates) {
       return
     }
     void loadCandidates()
@@ -348,6 +375,37 @@ function App() {
 
   const getCandidateStatus = (candidate: Mserp_hcmcandidatetohireentities) =>
     getFormattedValue(candidate, 'mserp_applicantintegrationresult')
+
+  const isNotProcessed = (candidate: Mserp_hcmcandidatetohireentities) => {
+    if (candidate.mserp_applicantintegrationresult === 200000000) {
+      return true
+    }
+    if (
+      String(candidate.mserp_applicantintegrationresult ?? '') === '200000000'
+    ) {
+      return true
+    }
+    return getCandidateStatus(candidate).toLowerCase() === 'notprocessed'
+  }
+
+  const notProcessedCandidates = useMemo(
+    () => candidates.filter(isNotProcessed),
+    [candidates],
+  )
+
+  const topNotProcessedCandidates = useMemo(
+    () => notProcessedCandidates.slice(0, 3),
+    [notProcessedCandidates],
+  )
+
+  const handleGoToCandidates = async () => {
+    setActiveId('pantstationer')
+    const data = hasLoadedCandidates ? candidates : await loadCandidates()
+    const target = data.find(isNotProcessed) ?? data[0]
+    if (target) {
+      setSelectedCandidateId(target.mserp_hcmcandidatetohireentityid)
+    }
+  }
 
   const sortedCandidates = useMemo(() => {
     const list = [...candidates]
@@ -787,6 +845,90 @@ function App() {
                 </div>
               )}
             </aside>
+          </section>
+        ) : activeId === 'klima' ? (
+          <section className="task-board">
+            <div className="task-header">
+              <p className="eyebrow">{activeItem.label}</p>
+              <h1>{t('taskBoardTitle')}</h1>
+            </div>
+            <div className="task-grid">
+              <article className="task-card task-card-candidates">
+                <div className="task-card-header">
+                  <div>
+                    <h2>{t('taskCandidatesTitle')}</h2>
+                    <p>
+                      {t('taskCandidatesCount', {
+                        count: String(notProcessedCandidates.length),
+                      })}
+                    </p>
+                  </div>
+                </div>
+                {topNotProcessedCandidates.length > 0 ? (
+                  <ul className="task-candidate-list">
+                    {topNotProcessedCandidates.map((candidate) => (
+                      <li
+                        key={candidate.mserp_hcmcandidatetohireentityid}
+                        className="task-candidate-row"
+                      >
+                        <div className="task-candidate-meta">
+                          <span className="task-candidate-name">
+                            {getCandidateName(candidate)}
+                          </span>
+                          <span className="task-candidate-status">
+                            {getCandidateStatus(candidate)}
+                          </span>
+                        </div>
+                        <div className="task-candidate-date">
+                          <span className="task-candidate-date-label">
+                            {t('availableLabel')}:
+                          </span>
+                          <span className="task-candidate-date-value">
+                            {formatDate(candidate.mserp_availabilitydate)}
+                          </span>
+                        </div>
+                        <button
+                          className="task-row-action"
+                          type="button"
+                          onClick={handleGoToCandidates}
+                          aria-label={t('taskCandidatesCta')}
+                        >
+                          <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                            <path d="M5 12h12m0 0-4-4m4 4-4 4" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="task-empty">{t('noCandidates')}</p>
+                )}
+                <div className="task-card-footer">
+                  <button
+                    className="task-action"
+                    type="button"
+                    onClick={handleGoToCandidates}
+                  >
+                    <span>{t('taskCandidatesCta')}</span>
+                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                      <path d="M5 12h12m0 0-4-4m4 4-4 4" />
+                    </svg>
+                  </button>
+                </div>
+              </article>
+              <article className="task-card task-card-placeholder">
+                <div>
+                  <h2>{t('taskPlaceholderTitle1')}</h2>
+                  <p>{t('taskPlaceholderBody1')}</p>
+                </div>
+              </article>
+              <article className="task-card task-card-placeholder">
+                <div>
+                  <h2>{t('taskPlaceholderTitle2')}</h2>
+                  <p>{t('taskPlaceholderBody2')}</p>
+                </div>
+              </article>
+            </div>
           </section>
         ) : (
           <section className="hero">
