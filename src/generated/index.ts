@@ -4,10 +4,12 @@
  */
 
 // Models
+export * as Clmbus_flowregistrationsesModel from './models/Clmbus_flowregistrationsesModel';
 export * as CommonModels from './models/CommonModels';
 export * as Mserp_hcmcandidatetohireentitiesModel from './models/Mserp_hcmcandidatetohireentitiesModel';
 export * as Office365UsersModel from './models/Office365UsersModel';
 
 // Services
+export * from './services/Clmbus_flowregistrationsesService';
 export * from './services/Mserp_hcmcandidatetohireentitiesService';
 export * from './services/Office365UsersService';

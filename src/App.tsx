@@ -4,6 +4,12 @@ import { Office365UsersService } from './generated/services/Office365UsersServic
 import type { Mserp_hcmcandidatetohireentities } from './generated/models/Mserp_hcmcandidatetohireentitiesModel'
 import { Mserp_hcmcandidatetohireentitiesmserp_applicantintegrationresult } from './generated/models/Mserp_hcmcandidatetohireentitiesModel'
 import { Mserp_hcmcandidatetohireentitiesService } from './generated/services/Mserp_hcmcandidatetohireentitiesService'
+import type {
+  Clmbus_flowregistrationsesBase,
+  Clmbus_flowregistrationsesclmbus_flowtype,
+  Clmbus_flowregistrationsesstatecode,
+} from './generated/models/Clmbus_flowregistrationsesModel'
+import { Clmbus_flowregistrationsesService } from './generated/services/Clmbus_flowregistrationsesService'
 import { ensurePowerInit } from './PowerProvider'
 import './App.css'
 
@@ -327,13 +333,31 @@ function App() {
   }
 
   const handleHireCandidate = async () => {
-    if (!selectedCandidate) {
+    if (!selectedCandidate || !isNotProcessed(selectedCandidate)) {
       return
     }
     setIsHiringCandidate(true)
     setCandidatesError(null)
     try {
       await ensurePowerInit()
+      const flowRegistration: Partial<Clmbus_flowregistrationsesBase> = {
+        clmbus_lookupguid: selectedCandidate.mserp_hcmcandidatetohireentityid,
+        clmbus_flowtype: 382470000 as Clmbus_flowregistrationsesclmbus_flowtype,
+        clmbus_name: `${getCandidateName(selectedCandidate)} - InterviewPrep`,
+        statecode: 0 as Clmbus_flowregistrationsesstatecode,
+      }
+      const flowResult = await Clmbus_flowregistrationsesService.create(
+        flowRegistration as Omit<
+          Clmbus_flowregistrationsesBase,
+          'clmbus_flowregistrationsid'
+        >,
+      )
+      if (!flowResult.success) {
+        setCandidatesError(
+          flowResult.error?.message ?? 'Unable to create flow registration.',
+        )
+        return
+      }
       const result = await Mserp_hcmcandidatetohireentitiesService.update(
         selectedCandidate.mserp_hcmcandidatetohireentityid,
         {
@@ -392,6 +416,10 @@ function App() {
     () => candidates.filter(isNotProcessed),
     [candidates],
   )
+
+  const canHireSelectedCandidate = selectedCandidate
+    ? isNotProcessed(selectedCandidate)
+    : false
 
   const topNotProcessedCandidates = useMemo(
     () => notProcessedCandidates.slice(0, 3),
@@ -479,13 +507,18 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand">
+        <button
+          className="brand"
+          type="button"
+          onClick={() => setActiveId('klima')}
+          aria-label={t('navOverview')}
+        >
           <img
             className="brand-logo"
             src="https://danskretursystem.dk/app/themes/drs_fallback/dist/images/logo_white_fd4f7212.svg"
             alt="Dansk Retur System"
           />
-        </div>
+        </button>
 
         <div className="topbar-right">
           <nav className="topnav" aria-label="Primary">
@@ -738,14 +771,16 @@ function App() {
                       <p className="eyebrow">{t('detailsEyebrow')}</p>
                       <h2>{getCandidateName(selectedCandidate)}</h2>
                     </div>
-                    <button
-                      className="candidate-hire"
-                      type="button"
-                      onClick={() => setIsConfirmingHire(true)}
-                      disabled={isHiringCandidate}
-                    >
-                      {t('hire')}
-                    </button>
+                    {canHireSelectedCandidate && (
+                      <button
+                        className="candidate-hire"
+                        type="button"
+                        onClick={() => setIsConfirmingHire(true)}
+                        disabled={isHiringCandidate}
+                      >
+                        {t('hire')}
+                      </button>
+                    )}
                   </div>
                   <dl className="candidate-details">
                     <div>

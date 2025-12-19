@@ -12,6 +12,13 @@ export const dataSourcesInfo = {
     "dataSourceType": "Dataverse",
     "apis": {}
   },
+  "clmbus_flowregistrationses": {
+    "tableId": "",
+    "version": "",
+    "primaryKey": "clmbus_flowregistrationsid",
+    "dataSourceType": "Dataverse",
+    "apis": {}
+  },
   "office365users": {
     "tableId": "",
     "version": "",

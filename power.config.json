@@ -28,6 +28,11 @@
           "entitySetName": "mserp_hcmcandidatetohireentities",
           "logicalName": "mserp_hcmcandidatetohireentity",
           "isHidden": false
+        },
+        "flowregistrations": {
+          "entitySetName": "clmbus_flowregistrationses",
+          "logicalName": "clmbus_flowregistrations",
+          "isHidden": false
         }
       },
       "version": "v9.0",
