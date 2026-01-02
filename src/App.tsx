@@ -24,15 +24,15 @@ const translations = {
     navCandidates: 'Kandidater',
     navProcesses: 'Processer',
     navSchools: 'Skoler & uddannelser',
-    loadingUser: 'Indlaeser brugerdata...',
+    loadingUser: 'Indlæser brugerdata...',
     welcomeUser: 'Velkommen, {name}.',
-    userLoadError: 'Kunne ikke indlaese brugerdata.',
-    retry: 'Forsog igen',
-    continue: 'Fortsaet til appen',
+    userLoadError: 'Kunne ikke indlæse brugerdata.',
+    retry: 'Forsøg igen',
+    continue: 'Fortsæt til appen',
     genericUser: 'Bruger',
     mainContentTitle: 'Hovedindhold for {label}',
     mainContentBody:
-      'Dette omrade udfyldes senere. Topbaren forbliver synlig, mens indholdet skifter med navigationen ovenfor.',
+      'Dette område udfyldes senere. Topbaren forbliver synlig, mens indholdet skifter med navigationen ovenfor.',
     candidatesEyebrow: 'Kandidater',
     candidatesTitle: 'Kandidatoversigt',
     refresh: 'Opdater',
@@ -40,17 +40,17 @@ const translations = {
     candidatesError: 'Kunne ikke hente kandidater.',
     noCandidates: 'Ingen kandidater fundet.',
     detailsEyebrow: 'Detaljer',
-    selectCandidateTitle: 'Vaelg en kandidat',
+    selectCandidateTitle: 'Vælg en kandidat',
     selectCandidateBody:
-      'Klik paa en kandidat til venstre for at aabne detaljepanelet.',
+      'Klik på en kandidat til venstre for at åbne detaljepanelet.',
     unknownCandidate: 'Ukendt kandidat',
     fieldFirstName: 'Fornavn',
     fieldLastName: 'Efternavn',
     fieldMiddleName: 'Mellemnavn',
     fieldPrefix: 'Prefix',
     fieldCandidateId: 'Kandidat-id',
-    fieldBirthdate: 'Fodselsdato',
-    fieldGender: 'Koen',
+    fieldBirthdate: 'Fødselsdato',
+    fieldGender: 'Køn',
     fieldAvailableFrom: 'Ledig fra',
     fieldPosition: 'Stilling',
     fieldRecruitingId: 'Rekrutterings-id',
@@ -65,11 +65,13 @@ const translations = {
     hire: 'Hire',
     hireConfirmTitle: 'Er du sikker?',
     hireConfirmBody: 'Denne handling kan ikke fortrydes.',
-    hireConfirmAction: 'Bekraeft',
+    hireConfirmAction: 'Bekræft',
     hireCancel: 'Annuller',
     download: 'Download',
     language: 'Sprog',
     menu: 'Menu',
+    userMenu: 'Bruger',
+    userTitleFallback: 'Titel ikke angivet',
     languageDanish: 'Dansk',
     languageEnglish: 'English',
     sort: 'Sorter',
@@ -77,17 +79,17 @@ const translations = {
     sortNameDesc: 'Navn (Z-A)',
     sortStatusAsc: 'Status (A-Z)',
     sortStatusDesc: 'Status (Z-A)',
-    sortHireDateAsc: 'Ansaettelsesdato (stigende)',
-    sortHireDateDesc: 'Ansaettelsesdato (faldende)',
+    sortHireDateAsc: 'Ansættelsesdato (stigende)',
+    sortHireDateDesc: 'Ansættelsesdato (faldende)',
     availableLabel: 'Ledig',
     taskBoardTitle: 'Overblik over opgaver',
     taskCandidatesTitle: 'Kandidater der mangler behandling',
     taskCandidatesCount: '{count} kandidater',
-    taskCandidatesCta: 'Gaa til kandidater',
+    taskCandidatesCta: 'Gå til kandidater',
     taskPlaceholderTitle1: 'KPI placeholder',
     taskPlaceholderBody1: 'Tilpas KPI her',
-    taskPlaceholderTitle2: 'KPI placeholder',
-    taskPlaceholderBody2: 'Tilpas KPI her',
+    taskHiredTitle: 'Ansatte kandidater: {count}',
+    taskHiredBody: 'Samlet antal kandidater med status Hired.',
   },
   en: {
     navOverview: 'Overview',
@@ -141,6 +143,8 @@ const translations = {
     download: 'Download',
     language: 'Language',
     menu: 'Menu',
+    userMenu: 'User',
+    userTitleFallback: 'Title not set',
     languageDanish: 'Danish',
     languageEnglish: 'English',
     sort: 'Sort',
@@ -157,14 +161,15 @@ const translations = {
     taskCandidatesCta: 'Go to candidates',
     taskPlaceholderTitle1: 'KPI placeholder',
     taskPlaceholderBody1: 'Configure KPI here',
-    taskPlaceholderTitle2: 'KPI placeholder',
-    taskPlaceholderBody2: 'Configure KPI here',
+    taskHiredTitle: 'Candidates hired: {count}',
+    taskHiredBody: 'Total candidates with status Hired.',
   },
 } as const
 
 function App() {
   const [locale, setLocale] = useState<Locale>('da')
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const t = (
     key: keyof typeof translations.da,
     vars?: Record<string, string>,
@@ -298,6 +303,7 @@ function App() {
 
   const canContinue = Boolean(user) && !isLoadingUser && !userError
   const displayName = user?.DisplayName ?? user?.Mail ?? t('genericUser')
+  const userTitle = user?.JobTitle ?? ''
   const selectedCandidate =
     candidates.find(
       (candidate) =>
@@ -416,6 +422,14 @@ function App() {
     [candidates],
   )
 
+  const isHired = (candidate: Mserp_hcmcandidatetohireentities) =>
+    getCandidateStatus(candidate).toLowerCase() === 'hired'
+
+  const hiredCandidates = useMemo(
+    () => candidates.filter(isHired),
+    [candidates],
+  )
+
   const canHireSelectedCandidate = selectedCandidate
     ? isNotProcessed(selectedCandidate)
     : false
@@ -423,6 +437,10 @@ function App() {
   const topNotProcessedCandidates = useMemo(
     () => notProcessedCandidates.slice(0, 3),
     [notProcessedCandidates],
+  )
+  const topHiredCandidates = useMemo(
+    () => hiredCandidates.slice(0, 3),
+    [hiredCandidates],
   )
 
   const handleGoToCandidates = async () => {
@@ -552,7 +570,10 @@ function App() {
                 title={t('language')}
                 aria-haspopup="menu"
                 aria-expanded={isLanguageMenuOpen}
-                onClick={() => setIsLanguageMenuOpen((open) => !open)}
+                onClick={() => {
+                  setIsLanguageMenuOpen((open) => !open)
+                  setIsUserMenuOpen(false)
+                }}
               >
                 <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
                   <circle cx="12" cy="12" r="9" />
@@ -586,11 +607,35 @@ function App() {
                 </div>
               )}
             </div>
-            <button className="icon-button" type="button" title={t('menu')}>
-              <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <div className="user-switcher">
+              <button
+                className="icon-button"
+                type="button"
+                title={t('userMenu')}
+                aria-haspopup="menu"
+                aria-expanded={isUserMenuOpen}
+                onClick={() => {
+                  setIsUserMenuOpen((open) => !open)
+                  setIsLanguageMenuOpen(false)
+                }}
+              >
+                <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                  <path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" />
+                  <path d="M4 20a8 8 0 0 1 16 0" />
+                </svg>
+              </button>
+              {isUserMenuOpen && (
+                <div className="user-menu" role="menu">
+                  <p className="user-menu-name">{displayName}</p>
+                  <p className="user-menu-title">
+                    {userTitle || t('userTitleFallback')}
+                  </p>
+                  {user?.Mail && (
+                    <p className="user-menu-email">{user.Mail}</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -955,16 +1000,61 @@ function App() {
                   </button>
                 </div>
               </article>
+              <article className="task-card task-card-hired">
+                <div className="task-card-header">
+                  <div>
+                    <h2>
+                      {t('taskHiredTitle', {
+                        count: String(hiredCandidates.length),
+                      })}
+                    </h2>
+                    <p>{t('taskHiredBody')}</p>
+                  </div>
+                </div>
+                {topHiredCandidates.length > 0 ? (
+                  <ul className="task-candidate-list">
+                    {topHiredCandidates.map((candidate) => (
+                      <li
+                        key={candidate.mserp_hcmcandidatetohireentityid}
+                        className="task-candidate-row"
+                      >
+                        <div className="task-candidate-meta">
+                          <span className="task-candidate-name">
+                            {getCandidateName(candidate)}
+                          </span>
+                          <span className="task-candidate-status">
+                            {getCandidateStatus(candidate)}
+                          </span>
+                        </div>
+                        <div className="task-candidate-date">
+                          <span className="task-candidate-date-label">
+                            {t('availableLabel')}:
+                          </span>
+                          <span className="task-candidate-date-value">
+                            {formatDate(candidate.mserp_availabilitydate)}
+                          </span>
+                        </div>
+                        <button
+                          className="task-row-action"
+                          type="button"
+                          onClick={() => handleGoToCandidate(candidate)}
+                          aria-label={t('taskCandidatesCta')}
+                        >
+                          <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+                            <path d="M5 12h12m0 0-4-4m4 4-4 4" />
+                          </svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="task-empty">{t('noCandidates')}</p>
+                )}
+              </article>
               <article className="task-card task-card-placeholder">
                 <div>
                   <h2>{t('taskPlaceholderTitle1')}</h2>
                   <p>{t('taskPlaceholderBody1')}</p>
-                </div>
-              </article>
-              <article className="task-card task-card-placeholder">
-                <div>
-                  <h2>{t('taskPlaceholderTitle2')}</h2>
-                  <p>{t('taskPlaceholderBody2')}</p>
                 </div>
               </article>
             </div>
