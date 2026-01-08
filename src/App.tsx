@@ -63,6 +63,7 @@ const translations = {
     fieldStatus: 'Status',
     fieldComments: 'Kommentarer',
     hire: 'Hire',
+    requestSignature: 'Anmod om signatur',
     hireConfirmTitle: 'Er du sikker?',
     hireConfirmBody: 'Denne handling kan ikke fortrydes.',
     hireConfirmAction: 'Bekræft',
@@ -136,6 +137,7 @@ const translations = {
     fieldStatus: 'Status',
     fieldComments: 'Comments',
     hire: 'Hire',
+    requestSignature: 'Request signature',
     hireConfirmTitle: 'Are you sure?',
     hireConfirmBody: 'This action cannot be reverted.',
     hireConfirmAction: 'Confirm',
@@ -203,6 +205,7 @@ function App() {
     null,
   )
   const [isHiringCandidate, setIsHiringCandidate] = useState(false)
+  const [isRequestingSignature, setIsRequestingSignature] = useState(false)
   const [isConfirmingHire, setIsConfirmingHire] = useState(false)
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
@@ -284,22 +287,27 @@ function App() {
       return []
     } finally {
       setIsLoadingCandidates(false)
+      setHasLoadedCandidates(true)
     }
   }
 
   useEffect(() => {
-    if (activeId !== 'pantstationer' || hasLoadedCandidates) {
+    if (
+      activeId !== 'pantstationer' ||
+      hasLoadedCandidates ||
+      isLoadingCandidates
+    ) {
       return
     }
     void loadCandidates()
-  }, [activeId, hasLoadedCandidates])
+  }, [activeId, hasLoadedCandidates, isLoadingCandidates])
 
   useEffect(() => {
-    if (activeId !== 'klima' || hasLoadedCandidates) {
+    if (activeId !== 'klima' || hasLoadedCandidates || isLoadingCandidates) {
       return
     }
     void loadCandidates()
-  }, [activeId, hasLoadedCandidates])
+  }, [activeId, hasLoadedCandidates, isLoadingCandidates])
 
   const canContinue = Boolean(user) && !isLoadingUser && !userError
   const displayName = user?.DisplayName ?? user?.Mail ?? t('genericUser')
@@ -337,6 +345,32 @@ function App() {
     return String(rawValue)
   }
 
+  const createFlowRegistration = async (
+    candidate: Mserp_hcmcandidatetohireentities,
+    flowType: Clmbus_flowregistrationsesclmbus_flowtype,
+    nameSuffix: string,
+  ) => {
+    const flowRegistration: Partial<Clmbus_flowregistrationsesBase> = {
+      clmbus_lookupguid: candidate.mserp_hcmcandidatetohireentityid,
+      clmbus_flowtype: flowType,
+      clmbus_name: `${getCandidateName(candidate)} - ${nameSuffix}`,
+      statecode: 0 as Clmbus_flowregistrationsesstatecode,
+    }
+    const flowResult = await Clmbus_flowregistrationsesService.create(
+      flowRegistration as Omit<
+        Clmbus_flowregistrationsesBase,
+        'clmbus_flowregistrationsid'
+      >,
+    )
+    if (!flowResult.success) {
+      setCandidatesError(
+        flowResult.error?.message ?? 'Unable to create flow registration.',
+      )
+      return false
+    }
+    return true
+  }
+
   const handleHireCandidate = async () => {
     if (!selectedCandidate || !isNotProcessed(selectedCandidate)) {
       return
@@ -345,22 +379,12 @@ function App() {
     setCandidatesError(null)
     try {
       await ensurePowerInit()
-      const flowRegistration: Partial<Clmbus_flowregistrationsesBase> = {
-        clmbus_lookupguid: selectedCandidate.mserp_hcmcandidatetohireentityid,
-        clmbus_flowtype: 382470000 as Clmbus_flowregistrationsesclmbus_flowtype,
-        clmbus_name: `${getCandidateName(selectedCandidate)} - InterviewPrep`,
-        statecode: 0 as Clmbus_flowregistrationsesstatecode,
-      }
-      const flowResult = await Clmbus_flowregistrationsesService.create(
-        flowRegistration as Omit<
-          Clmbus_flowregistrationsesBase,
-          'clmbus_flowregistrationsid'
-        >,
+      const created = await createFlowRegistration(
+        selectedCandidate,
+        382470000 as Clmbus_flowregistrationsesclmbus_flowtype,
+        'InterviewPrep',
       )
-      if (!flowResult.success) {
-        setCandidatesError(
-          flowResult.error?.message ?? 'Unable to create flow registration.',
-        )
+      if (!created) {
         return
       }
       const result = await Mserp_hcmcandidatetohireentitiesService.update(
@@ -385,6 +409,33 @@ function App() {
       )
     } finally {
       setIsHiringCandidate(false)
+    }
+  }
+
+  const handleRequestSignature = async () => {
+    if (!selectedCandidate || !isNotProcessed(selectedCandidate)) {
+      return
+    }
+    setIsRequestingSignature(true)
+    setCandidatesError(null)
+    try {
+      await ensurePowerInit()
+      const created = await createFlowRegistration(
+        selectedCandidate,
+        382470002 as Clmbus_flowregistrationsesclmbus_flowtype,
+        'SignatureRequired',
+      )
+      if (created) {
+        await loadCandidates()
+      }
+    } catch (error) {
+      setCandidatesError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to create flow registration.',
+      )
+    } finally {
+      setIsRequestingSignature(false)
     }
   }
 
@@ -821,14 +872,24 @@ function App() {
                       <h2>{getCandidateName(selectedCandidate)}</h2>
                     </div>
                     {canHireSelectedCandidate && (
-                      <button
-                        className="candidate-hire"
-                        type="button"
-                        onClick={() => setIsConfirmingHire(true)}
-                        disabled={isHiringCandidate}
-                      >
-                        {t('hire')}
-                      </button>
+                      <div className="candidate-panel-actions">
+                        <button
+                          className="candidate-signature"
+                          type="button"
+                          onClick={handleRequestSignature}
+                          disabled={isRequestingSignature || isHiringCandidate}
+                        >
+                          {t('requestSignature')}
+                        </button>
+                        <button
+                          className="candidate-hire"
+                          type="button"
+                          onClick={() => setIsConfirmingHire(true)}
+                          disabled={isHiringCandidate || isRequestingSignature}
+                        >
+                          {t('hire')}
+                        </button>
+                      </div>
                     )}
                   </div>
                   <dl className="candidate-details">

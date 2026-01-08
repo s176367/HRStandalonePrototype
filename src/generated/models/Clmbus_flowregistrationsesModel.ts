@@ -4,7 +4,8 @@
  */
 export const Clmbus_flowregistrationsesclmbus_flowtype = {
   382470000: 'InterviewPrep',
-  382470001: 'OutlookNotifications'
+  382470001: 'OutlookNotifications',
+  382470002: 'SignatureRequired'
 } as const;
 export type Clmbus_flowregistrationsesclmbus_flowtype = keyof typeof Clmbus_flowregistrationsesclmbus_flowtype;
 export const Clmbus_flowregistrationsesstatecode = {

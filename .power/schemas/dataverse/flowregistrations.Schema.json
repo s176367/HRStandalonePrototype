@@ -28,13 +28,16 @@
           "x-ms-schema-name": "clmbus_FlowType",
           "enum": [
             "InterviewPrep",
-            "OutlookNotifications"
+            "OutlookNotifications",
+            "SignatureRequired"
           ],
           "x-ms-enum-values": [
             382470000,
-            382470001
+            382470001,
+            382470002
           ],
           "Color": [
+            null,
             null,
             null
           ],
